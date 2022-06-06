@@ -1,0 +1,3 @@
+"0","M_GP_C_RES_YG_SA<-filter(data,Year==2006&Grade==3)"
+"0","M_GP_C_RES_YG_SA<-M_GP_C_RES_YG_SA[c(""Category"",""Mean.Scale.Score"")]"
+"0","ggplot(M_GP_C_RES_YG_SA, aes(x=Category, y=Mean.Scale.Score, fill=Category))+geom_bar(stat=""identity"",width = 0.7)+ylim(min(M_GP_C_RES_YG_SA$Mean.Scale.Score,0)*1.1,max(M_GP_C_RES_YG_SA$Mean.Scale.Score)*1.1)"

@@ -1,0 +1,4 @@
+"0","temp<-group_by(MG_GP_C,Grade)"
+"0","#summarise(temp,sum_Mean=mean(Mean.Scale.Score))"
+"0","MG<-summarise(temp,sum_Mean=mean(Mean.Scale.Score))"
+"0","ggplot(MG, aes(Grade, sum_Mean)) + geom_line(size=1) + geom_point(size=3)"

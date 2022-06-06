@@ -1,0 +1,6 @@
+"0","RG_GP_C_RES_Y_SA<-filter(data,Year==""2006"")"
+"0","temp <- sub(""All Grades"",""0"",RG_GP_C_RES_Y_SA$Grade)"
+"0","RG_GP_C_RES_Y_SA$Grade<-temp"
+"0","RG_GP_C_RES_Y_SA$Grade <- as.numeric(RG_GP_C_RES_Y_SA$Grade)"
+"0","RG_GP_C_RES_Y_SA<-filter(RG_GP_C_RES_Y_SA, Grade!=0)"
+"0","ggplot(RG_GP_C_RES_Y_SA, aes(Grade, Level.3.4...1, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)"

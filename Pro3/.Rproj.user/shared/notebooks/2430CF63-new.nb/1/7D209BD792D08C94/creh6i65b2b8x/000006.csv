@@ -1,0 +1,2 @@
+"0","MY_GP_C_RES_G_SA<-filter(data, Grade==3)"
+"0","ggplot(MY_GP_C_RES_G_SA, aes(Year, Mean.Scale.Score, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)"

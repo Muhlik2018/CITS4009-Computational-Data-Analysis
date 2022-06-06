@@ -1,0 +1,18 @@
+"0","library(""dplyr"")"
+"2","
+载入程辑包：‘dplyr’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"0","library(""ggplot2"")"
+"0","data<-read.csv(""Grades.csv"")"
+"0",""

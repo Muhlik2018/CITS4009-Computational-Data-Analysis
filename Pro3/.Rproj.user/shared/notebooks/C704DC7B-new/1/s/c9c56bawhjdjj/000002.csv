@@ -1,0 +1,4 @@
+"0","RY_RES_G_SA<-filter(data, Grade==""3"")"
+"0","temp<-group_by(RY_RES_G_SA,Year)"
+"0","RY_RES_G_SA<-summarise(temp,rate_Mean=mean(Level.3.4...1))"
+"0","ggplot(RY_RES_G_SA, aes(Year, rate_Mean)) + geom_line(size=1) + geom_point(size=3)"

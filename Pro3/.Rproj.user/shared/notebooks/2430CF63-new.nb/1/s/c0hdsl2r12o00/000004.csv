@@ -1,0 +1,8 @@
+"0","MG_GP_C<-data"
+"0","temp <- sub(""All Grades"",""0"",MG_GP_C$Grade)"
+"0","MG_GP_C$Grade<-temp"
+"0","MG_GP_C$Grade <- as.numeric(MG_GP_C$Grade)"
+"0","#summary(MG_GP_C) "
+"0","temp<-filter(MG_GP_C,Year-2006==Grade-3)"
+"0","MG_GP_C<-temp"
+"0","ggplot(MG_GP_C, aes(Grade, Mean.Scale.Score, color = Category)) + geom_point(size = 3)"

@@ -1,0 +1,328 @@
+---
+title: "CITS4009 - Project 1"
+author: "Chenxin Hu(22961779)"
+date: "02/09/2021"
+output: html_notebook
+---
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Part1 Introduction
+
+The data used in this report is from 2006 - 2011 NYS Math Test Results By Grade - School Level - By Disability Status - CKAN (data.gov)
+
+https://catalog.data.gov/dataset/2006-2011-nys-math-test-results-by-grade-boro-by-disability-status
+
+It contains the NYS math test results by grade-school level from year 2006-2011.
+
+The factors that influences the student behavior has long been discussed, and this report will mainly focusing on it.
+
+
+### Part2 Overview Of data And Question Generation
+
+Firstly, some libraries are loaded
+```{r}
+library("dplyr")
+library("ggplot2")
+data<-read.csv("Grades.csv")
+
+```
+Then using formula summary() and head() to glance through the data.
+```{r}
+summary(data)
+```
+The data has 15 cols, no Na is found. There is one place that we need to do some clean，that is the grade, which stored as character but this report will use it as numerical in some investments. But left it currently, it's better to change only when it is needed, cause there's also investments that use the col Grade as a character
+
+Now we use head()
+```{r}
+head(data)
+```
+The head() function provides an quick view on how the data is filled.
+
+In conclusion, this data can be firstly processed from category, grade, year, mean grades and rate of level of math tests that the student chose\n
+So there is some basic question that came into my mind:
+
+How is the mean scores differs from categories?
+
+How is the mean scores differs from year?
+
+How is the rate of level of school that student chose differs from categories?
+
+How is the rate of level of school that student chose differs from year?
+
+How is the rate of each categories in students and the change tendency of the rate?
+
+These questions then can be divided into 3 main aspects
+
+1. The factor affects scores
+
+2. The factor affects student choices on school levels
+
+3. The factor affects rate of students in different categories
+
+They will be discussed in later parts
+
+Before that, to analyze this data, some name restrictions is applied for the R variable names for the purpose of readabilities, that is:
+
+Standards to name variables in R file:
+
+	1. It should contain the variables used to measure the data,  that is the y-axis. Starting with Short names for csv variables, ended with _
+	
+	2. Followed by measurements, there is the variable used group the data., that means the x axis. Start with symbol" GP_", followed by short names of restricted variables, ended with “_” 
+	
+	3. After the data group, there is restrictions, Start with Symbol "RES_", followed by short names of restricted variables, ended with “_”
+	
+	4. In the end is the restriction type, SA means the same
+	
+For example, the 
+
+Means by category within the same year at the same grade
+
+M_GP_C_RES_YG_SA
+
+Short name for variables in csv file:
+
+G stands for Grade
+
+Y stands for Year
+
+C stands for category
+
+M stands for mean
+
+R stands for rate of level3 and level4 school rate
+
+N stands for student number
+
+
+### Part3 Factors Influence Student's Score
+
+At first, we can started with the easy one: how mean grades differs from categories?
+
+For connivence, I looked into only year 2006, grade 3 data in beginning.
+
+The data should be cleaned, using filter() to find the rows that year=2006 and grade=3.
+
+Then using category as x-axis, score as y-axis. Apply formula ggplot()+geom_bar().
+```{r}
+M_GP_C_RES_YG_SA<-filter(data,Year==2006&Grade==3)
+M_GP_C_RES_YG_SA<-M_GP_C_RES_YG_SA[c("Category","Mean.Scale.Score")]
+ggplot(M_GP_C_RES_YG_SA, aes(x=Category, y=Mean.Scale.Score, fill=Category))+geom_bar(stat="identity",width = 0.7)+ylim(min(M_GP_C_RES_YG_SA$Mean.Scale.Score,0)*1.1,max(M_GP_C_RES_YG_SA$Mean.Scale.Score)*1.1)
+
+```
+We can see that Asian acts the best in math tests, followed by the White, Hispanic and the black.
+
+Summary the data we have:
+```{r}
+summary(M_GP_C_RES_YG_SA)
+```
+We can found the Asian acts 36 points higher then the Black, using mean as a base, we can generate that in grade3, year 2006, Asian acts 5% better then the Black, consider how exam works: that is the difficulty of getting higher grades increases exponentially, the Asian may acted better more then what we generate.
+
+But notice, we only used one year data in one grade, now it comes to a new question: did this situation the same in all grades? 
+
+To find the data for all grades, first we should use the filter() to find the rows that year=2006.
+
+Then using year as x-axis, score as y-axis, group data by categories, using the ggplot()+geom_bar():
+```{r}
+MG_GP_C_RES_Y_SA<-filter(data,Year==2006)
+MG_GP_C_RES_Y_SA=MG_GP_C_RES_Y_SA[c("Category","Mean.Scale.Score","Grade")]
+ggplot(MG_GP_C_RES_Y_SA,aes(x=Grade,y=Mean.Scale.Score,fill=factor(Category)))+geom_bar(stat="identity",position="dodge")
+
+```
+Here is the all grade mean scale score grouped by categories in 2006, it shows the situation shown in grade3 graph, is the same to all grades.
+
+We can use the data that obtained previously to draw a box plot, using ggplot()+geom_boxplot():
+```{r}
+ggplot(MG_GP_C_RES_Y_SA,aes(factor(Grade),Mean.Scale.Score))+geom_boxplot()
+```
+But the difference itself, does not increase significantly as the box plot shows
+
+After the category, we can focusing on the change of students grade by years: did student make progress during their studies?
+
+It should be noticed that the students who study at grade 3, 2006 should be in grade 4, 2007.
+
+So we have to transform col Grades from character into numerical now to find the same students but grade increases as year increases.
+
+Observe the data, we can find a value "All Grades" in col grade, the value needs to be changed to a number, for example 0, first.
+
+We can use sub() to extract the col grade out, and transform "All Grades" into "0", given value to a new variable temp, then given value back from temp to col grade in our data.
+
+Notice that the grade is still a character col, so using as.numeric() to change it to numerical.
+
+Using as.numeric() early then transforming "All Grades" to "0" would cause error, cause the value “All Grades” can't be automatically transformed into numerical, while "0" can.
+
+Then we use filter() to find the rows that year-2006=grade-3, to track the students in grade 3 at year 2006 and their behavior in the following years.
+
+After that, we can use ggplot()+ geom_point to obtain a scatter plot for their scores from grade 3 to grade 8.
+```{r}
+MG_GP_C<-data
+temp <- sub("All Grades","0",MG_GP_C$Grade)
+MG_GP_C$Grade<-temp
+MG_GP_C$Grade <- as.numeric(MG_GP_C$Grade)
+#summary(MG_GP_C) 
+temp<-filter(MG_GP_C,Year-2006==Grade-3)
+MG_GP_C<-temp
+ggplot(MG_GP_C, aes(Grade, Mean.Scale.Score, color = Category)) + geom_point(size = 3)
+
+```
+The scatter plot shows that from grade3 to grade 8, Black, Hispanic, White, had a slightly decrease on score from grade 3-4, while the Asian keep raising until grade 5. After grade 5, all categories of students' score suffered a great decrease, and reaches the minimum in grade 7. In the end, the score grown back a little in grade 8.
+
+Then we line the scatters up for a more clear view, using ggplot()+geom_line()+geom_point().
+```{r}
+ggplot(MG_GP_C, aes(Grade, Mean.Scale.Score, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)
+```
+To extract the data for all students, we can use group_by() to group our data by categories, then calculate the mean score for all categories' students in different years.
+
+Now we have the data of all students' score from grade 3 to grade 8, then using ggplot()+geom_point to draw.
+```{r}
+temp<-group_by(MG_GP_C,Grade)
+#summarise(temp,sum_Mean=mean(Mean.Scale.Score))
+MG<-summarise(temp,sum_Mean=mean(Mean.Scale.Score))
+ggplot(MG, aes(Grade, sum_Mean)) + geom_line(size=1) + geom_point(size=3)
+```
+The score kept increasing until grade 5, then suffered a great decrease to grade 7, and climbed back a little at grade 8
+
+Then comes to the question: did students' quality changes during these years? That is, did new students acts better or worse then old ones in math tests?
+
+We can use filter() to find all rows that grade=3.
+```{r}
+MY_GP_C_RES_G_SA<-filter(data, Grade==3)
+ggplot(MY_GP_C_RES_G_SA, aes(Year, Mean.Scale.Score, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)
+```
+This plot shows the score of grade 3 students change by years.
+
+Why only chose grade 3 students? That is ,the student quality only shows when they interacts with school less, or it would be influenced largely by school's education quality, which we research just upon
+
+From the plot we can find that all students acts better until year 2009, in year 2010, the Asian students first acted worse, followed by other 3 categories students in 2011
+
+So we group students by year, and calculate the year specified mean score.
+
+For all student, there is:
+```{r}
+temp<-group_by(MY_GP_C_RES_G_SA,Year)
+#summarise(temp,sum_Mean=mean(Mean.Scale.Score))
+MY_RES_G_SA<-summarise(temp,sum_Mean=mean(Mean.Scale.Score))
+ggplot(MY_RES_G_SA, aes(Year, sum_Mean)) + geom_line(size=1) + geom_point(size=3)
+```
+
+The behavior for all new students decreased significantly from year 2010 to year 2011
+
+
+In this part we can conclude: 
+
+1. The categories of students have influences on students' behavior on math tests, but not significant.
+
+2. The grade of students has a significant influence on students' behavior on math tests
+
+3. The student quality increases until year 2010, but suffered a great decline in year 2011, which implies by the mean score
+
+
+### Part4 Factors Influence Student's Choices On School Levels
+
+In this part we start at categories too, cause categories is the most nature and significant factors that one may notice.
+
+We can extract our data using filter() to find all rows that grade="All Grades".
+
+Looked into choices of different categories in levels differs from year, there is:
+```{r}
+RY_GP_C_RES_G_SA<-filter(data, Grade=="All Grades")
+ggplot(RY_GP_C_RES_G_SA,aes(x=Year,y=Level.3.4...1,fill=factor(Category)))+geom_bar(stat="identity",position="dodge")
+
+```
+This plot shown that Asian and the White chooses level3&4 school the most, significantly higher than the Hispanic and the Black
+
+Recall the grade difference between the 4 categories students. Asian and the White acted much better than other 2 categories, the same as their rate of attending high level schools.
+
+What's the change of attendance to high level schools during grades, forget about category? Example using Year 2006
+
+We need to transform the col grade to numerical too, then find the data that grade!=0(i.e. Grade!="All Grades").
+```{r}
+RG_GP_C_RES_Y_SA<-filter(data,Year=="2006")
+temp <- sub("All Grades","0",RG_GP_C_RES_Y_SA$Grade)
+RG_GP_C_RES_Y_SA$Grade<-temp
+RG_GP_C_RES_Y_SA$Grade <- as.numeric(RG_GP_C_RES_Y_SA$Grade)
+RG_GP_C_RES_Y_SA<-filter(RG_GP_C_RES_Y_SA, Grade!=0)
+ggplot(RG_GP_C_RES_Y_SA, aes(Grade, Level.3.4...1, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)
+```
+The plot shows that the attendance to high level school kept decreasing in all 4 categories from grade 3-8.
+
+Then how is the attendance rate change during years?
+```{r}
+RY_RES_G_SA<-filter(data, Grade=="3")
+temp<-group_by(RY_RES_G_SA,Year)
+RY_RES_G_SA<-summarise(temp,rate_Mean=mean(Level.3.4...1))
+ggplot(RY_RES_G_SA, aes(Year, rate_Mean)) + geom_line(size=1) + geom_point(size=3)
+```
+We can conclude that the attendance rate to high level schools for all students kept raising until year 2009, then it meet a great decline in year 2010, only sightly recovered in year2011.
+
+Mind that all students' score met decreased quickly in year 2009-2010, the same time the rate decreases, it may imply that lower attendance rate to high level schools is the main cause of score decline
+
+In this part we can further our discoveries:
+
+1. The score differences between categories is mainly influenced by high level schools attendance rate of each categories.
+
+2. The score decline in year 2010 is mainly caused by the decrease of high level schools attendance rate.
+
+
+### Part5 Factors Influence Student's Rate In Different Categories
+
+
+There's 4 different categories of students. This part is mainly focusing on how the rate of each categories of student in all students changes.
+
+Firstly, we choose year 2006 as an example, calculating all grades student number of different categories:
+```{r}
+CN_RES_YG_SA<-filter(data,Year==2006&Grade=="All Grades")
+CN_RES_YG_SA<-mutate(CN_RES_YG_SA,numberRate=Number.Tested/sum(Number.Tested)*100)
+#pie(CN_RES_YG_SA$Number.Tested,CN_RES_YG_SA$Category,col = c("purple","violetred1","green3","cornsilk","cyan") )
+
+ggplot(CN_RES_YG_SA,aes(x="", y= numberRate, fill = Category)) + 
+    geom_bar(stat = "identity",color="white") + theme_bw() +
+    scale_fill_manual(values = c("purple", "violetred1", "green3", "cornsilk", "cyan")) +
+    theme(axis.text.x = element_blank(),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank()) +
+    labs(x="", y="") + 
+    geom_text(aes(y = numberRate/2 + c(0, cumsum(numberRate)[-length(numberRate)]),
+                  label = paste0(Category,": ", ceiling(numberRate),"%")), size=5) +
+    coord_polar(theta = "y")
+```
+The Hispanic has the largest rate, about 40 persenct, followed by Black of 33%, White 14% and Asian 14%.
+
+Does this rate change during years?
+```{r}
+CNY_RES_G_SA<-filter(data,Grade=="All Grades")
+temp<-group_by(CNY_RES_G_SA,Year)
+temp2=summarise(temp,Category,numberRate=Number.Tested/sum(Number.Tested)*100)
+CNY_RES_G_SA<-temp2
+ggplot(CNY_RES_G_SA, aes(Year, numberRate, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)
+```
+We can find that the rate of Black decreases, While the White and the Asian grows. Hispanic is almost the same.
+
+In box plot:
+```{r}
+ggplot(CNY_RES_G_SA,aes(factor(Year),numberRate))+geom_boxplot()
+```
+We can conclude that the differences between rates of different categories students decreases with year.
+
+In this part we can conclude:
+
+1.	The Hispanic and the Black has the most students, while the White and the Asian has much lower students than the Hispanic and Black has
+
+2.	The Black students number met a decrease in year 2010, which caused the differences between student numbers in different categories gets lower
+
+
+### Part6 Summary
+
+In the whole report, firstly, we’re trying to get the score difference between categories, and the change of scores during years
+
+In the following part, we find the internal factors that influences the students’ behaviors in math tests: the rate of attendance to high level schools. 
+
+The higher the rate, the better score, both in different categories and years.
+
+In the end, we focusing on how students of different categories distributes, we find that The Hispanic and the Black has the most students, while the White and the Asian has much lower students than the Hispanic and Black has, And the Black students number met a decrease in year 2010, which caused the differences between student numbers in different categories gets lower
+```{r, include=FALSE}
+rmarkdown::render('new.Rmd', 'html_notebook')
+```
+

@@ -1,0 +1,4 @@
+"0","MG_GP_C_RES_Y_SA<-filter(data,Year==2006)"
+"0","MG_GP_C_RES_Y_SA=MG_GP_C_RES_Y_SA[c(""Category"",""Mean.Scale.Score"",""Grade"")]"
+"0","ggplot(MG_GP_C_RES_Y_SA,aes(x=Grade,y=Mean.Scale.Score,fill=factor(Category)))+geom_bar(stat=""identity"",position=""dodge"")"
+"0",""

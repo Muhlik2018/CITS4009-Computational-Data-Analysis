@@ -1,0 +1,7 @@
+"0","CNY_RES_G_SA<-filter(data,Grade==""All Grades"")"
+"0","temp<-group_by(CNY_RES_G_SA,Year)"
+"0","temp2=summarise(temp,Category,numberRate=Number.Tested/sum(Number.Tested)*100)"
+"1","`summarise()` has grouped output by 'Year'. You can override using the `.groups` argument.
+"
+"0","CNY_RES_G_SA<-temp2"
+"0","ggplot(CNY_RES_G_SA, aes(Year, numberRate, color = Category)) + geom_line(aes(linetype = Category), size=1) + geom_point(aes(shape=Category), size=3)"

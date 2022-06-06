@@ -1,0 +1,3 @@
+"0","RY_GP_C_RES_G_SA<-filter(data, Grade==""All Grades"")"
+"0","ggplot(RY_GP_C_RES_G_SA,aes(x=Year,y=Level.3.4...1,fill=factor(Category)))+geom_bar(stat=""identity"",position=""dodge"")"
+"0",""

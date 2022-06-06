@@ -1,0 +1,129 @@
+---
+title: "CITS4009 - Project 2"
+author: "Chenxin Hu(22961779)"
+date: "02/09/2021"
+output: html_notebook
+---
+```{r include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(cluster)
+library("dplyr")
+library("ggplot2")
+library(fpc)
+```
+
+## Clustering
+### Preprocessing
+```{r}
+data<-read.csv("flights.csv")
+data<-data[,-c(25:31)] #delete useless line
+data<-na.omit(data)
+head(data)
+```
+### K-Means
+For air-lines, the  chance of delay maybe closely related to its distance.
+
+For example, if the distance is long, there's more chance to have a bad weather happen on the way.
+
+We can group the ARRIVAL_DELAY, DEPARTURE_DELAY and the DISTANCE as a unit for clustering.
+
+If the data can be clustered into few clusters that can be obtained using distance to group the data, that means the thought is correct.
+
+First we can add a new column called IS_DELAY to original data, also, we can create a new column to label the distance as long, middle or short.
+```{r}
+data$IS_DELAY[data$DEPARTURE_DELAY>0|data$ARRIVAL_DELAY>0]<-1
+data$IS_DELAY[data$DEPARTURE_DELAY<=0&data$ARRIVAL_DELAY<=0]<-0
+head(data)
+```
+Then we sampling 0.1 data from the original data.
+```{r}
+data2<-sample(nrow(data),0.1*nrow(data))
+data2<-data[data2,]
+data3<-data2
+data2<-data3[,grepl("IS_DELAY|DISTANCE", colnames(data3))]
+data3$DISTANCE_LEVEL[data3$DISTANCE<2000]<-"Short"
+data3$DISTANCE_LEVEL[data3$DISTANCE>=2000&data3$DISTANCE<4000]<-"Mid"
+data3$DISTANCE_LEVEL[data3$DISTANCE>=4000]<-"Long"
+head(data2)
+head(data3)
+```
+Now we can perform clustering using k-means, choose k value as 3 cause we hope the result clustered in 3 groups representing the distance level.
+```{r}
+data.kmeans<-kmeans(data2,3)
+table(data3$DISTANCE_LEVEL,data.kmeans$cluster)
+```
+We can see that the data with short distance level uniformly distributed in 3 clusters, that means distance level has no relationship to the occur of delay.
+
+But will the distance level influence the delay time? We can first draw a plot.
+```{r}
+data2<-data3[,grepl("ARRIVAL_DELAY|DISTANCE", colnames(data))]
+plot(data2$DISTANCE,data2$ARRIVAL_DELAY,pch="*")
+```
+From this we can see that the flights with longer distance has a significantly shorter arrival delay.
+
+Then we perform clustering, choosing k as 3.
+```{r}
+data.kmeans<-kmeans(data2,3)
+table(data3$DISTANCE_LEVEL,data.kmeans$cluster)
+```
+The data was separated into 3 groups, and most data with short distance  falls in 3 groups uniformly, data with midlle and data with long distance mostly falls in the third group.
+
+There should be a change in k-means value, observing the plot we obtain before, we can draw 2 different cluster from the graph,we can set the k-means value to 2.
+```{r}
+data.kmeans<-kmeans(data2,2)
+table(data3$DISTANCE_LEVEL,data.kmeans$cluster)
+plot(data2$DISTANCE,data2$ARRIVAL_DELAY,col=data.kmeans$cluster,pch="*")
+points(data.kmeans$centers,pch="X",cex=1.5,col=4)
+```
+The label can also be cleaned, using 2 levels: short and long, instead of 3 levels can be more fit in the clusters.
+```{r}
+data3$DISTANCE_LEVEL[data3$DISTANCE<3000]<-"Short"
+data3$DISTANCE_LEVEL[data3$DISTANCE>=3000]<-"Long"
+table(data3$DISTANCE_LEVEL,data.kmeans$cluster)
+plot(data2$DISTANCE,data2$ARRIVAL_DELAY,col=data.kmeans$cluster,pch="*")
+points(data.kmeans$centers,pch="X",cex=1.5,col=4)
+```
+### K-Mediods
+After using k-means, we can use the K-Mediods method to see if it has a better performance.
+
+K-Mediods is a clustering algorithm that performs better when there are outsiders.
+```{r}
+data.clara<-clara(data2,2)
+table(data3$DISTANCE_LEVEL,data.clara$clustering)
+layout(matrix(c(1,2),1,2))
+plot(data.clara)
+layout(matrix(1))
+```
+We can see the K-Mediods method performs the same as k-means method.
+### Denisty-Based clustering
+We can also apply density-based clustering in investigation, desity-based clustering can perform better with noisy and unregular shapes.
+
+But it also consumes large storage, so we'll only perform the clustering on a small data set.
+```{r}
+data4<-sample(nrow(data3),0.01*nrow(data3))
+data4<-data[data4,]
+
+
+data4$DISTANCE_LEVEL[data4$DISTANCE<3000]<-"Short"
+data4$DISTANCE_LEVEL[data4$DISTANCE>=3000]<-"Long"
+
+data5<-data4
+data5<-data5[,grepl("ARRIVAL_DELAY|DISTANCE", colnames(data5))]
+data5<-data5[,-3]
+ds<-dbscan(data5,eps=0.42,MinPts = 5)
+table(ds$cluster,data4$DISTANCE_LEVEL)
+plot(ds,data5)
+plotcluster(data5,ds$cluster)
+```
+Eps stands for how large the area around one point and minpts stands for how much points should be find in the area to mark the centre point as important point.
+
+The result is not ideal as using k-means, it's because the data set is small, so density-based clustering can avoid choosing k-means values, but can only performs well on large data and high performance machines.
+
+```{r, include=FALSE}
+rmarkdown::render('new.Rmd', 'html_notebook')
+```
+
+

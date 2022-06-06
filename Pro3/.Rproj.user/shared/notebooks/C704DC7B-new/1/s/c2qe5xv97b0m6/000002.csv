@@ -1,0 +1,4 @@
+"0","temp<-group_by(MY_GP_C_RES_G_SA,Year)"
+"0","#summarise(temp,sum_Mean=mean(Mean.Scale.Score))"
+"0","MY_RES_G_SA<-summarise(temp,sum_Mean=mean(Mean.Scale.Score))"
+"0","ggplot(MY_RES_G_SA, aes(Year, sum_Mean)) + geom_line(size=1) + geom_point(size=3)"
